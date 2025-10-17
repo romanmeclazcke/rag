@@ -21,22 +21,18 @@ class LlmService:
 
             #  Prompt final
             prompt = f"""
-            Usa el siguiente contexto para responder la pregunta del usuario.
-
+            Complementa tu conocimiento con el siguiente contexto para responder la pregunta del usuario, en caso de ser útil.
             Contexto:
             {context_text if context_text else "No se proporcionó contexto."}
-
             Pregunta:
             {question.question}
-
-            Si la respuesta no está claramente en el contexto, responde "No tengo suficiente información para responder".
             """
 
             # Mando Request al modelo
             response:ChatResponse = self.ollama_client.chat(
                 model=CHAT_MODEL, 
                 messages=[
-                    {"role": "system", "content": "Eres un asistente útil que responde basado en el contexto."},
+                    {"role": "system", "content": "Eres un asistente útil y preciso que responde basado en tu conocimiento y el posible contexto brindado."},
                     {"role": "user", "content": prompt}
                 ]
             )

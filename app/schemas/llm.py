@@ -4,7 +4,7 @@ from typing import Optional, List
 class LlmQuestion(BaseModel):
     question: str
     context: Optional[List[str]] = None
-    conversation: Optional[List[dict]] = None
+    conversation: Optional[List[str]] = None
     
     
     

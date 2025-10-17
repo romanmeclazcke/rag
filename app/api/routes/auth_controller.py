@@ -7,7 +7,6 @@ from model.user import User
 from utils.hash import verify
 from utils import oauth2
 
-
 router = APIRouter(tags=['Authentication'])
 
 @router.post("/login", response_model=Token)
