@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+env/
+.env
+
+# IDEs
+.idea/
+.vscode/
+
+# Ollama / Modelos / Datos
+ollama/
+*.bin
+*.pt
+*.h5
+*.zip
+*.pdf
+*.db
+*.csv
+
+# Llaves / SSH
+id_*
+*.pub
