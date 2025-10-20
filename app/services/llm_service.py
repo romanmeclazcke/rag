@@ -9,9 +9,7 @@ class LlmService:
 
 
     def generate_response(self, question: LlmQuestion) -> str:
-        """
-        Genera una respuesta basada en la pregunta y el contexto proporcionado.
-        """
+        """Genera una respuesta basada en la pregunta y el contexto proporcionado."""
         try:
             context_text = ""
             if question.context and len(question.context) > 0:
@@ -21,8 +19,10 @@ class LlmService:
 
             #  Prompt final
             prompt = f"""
-            Complementa tu conocimiento con el siguiente contexto para responder la pregunta del usuario, en caso de ser útil.
-            Contexto:
+            Responde (directamente, sin frases introductorias ni explicaciones sobre tu rol) a la siguiente pregunta usando tu propio conocimiento.
+            Si el contexto adicional dado es útil o relevante, puedes usarlo; si no, ignóralo.
+
+            Contexto (opcional):
             {context_text if context_text else "No se proporcionó contexto."}
             Pregunta:
             {question.question}
@@ -32,12 +32,12 @@ class LlmService:
             response:ChatResponse = self.ollama_client.chat(
                 model=CHAT_MODEL, 
                 messages=[
-                    {"role": "system", "content": "Eres un asistente útil y preciso que responde basado en tu conocimiento y el posible contexto brindado."},
+                    {"role": "system", "content": "Eres un asistente útil, directo y preciso. Responde de manera directa sin inventar contexto innecesario."},
                     {"role": "user", "content": prompt}
                 ]
             )
 
-            return response.message.content  if response.message.content else "No tengo suficiente información para responder."
+            return response.message.content
 
         except Exception as e:
             print(f"Error al generar respuesta del LLM: {e}")
