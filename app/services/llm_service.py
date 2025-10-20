@@ -1,12 +1,11 @@
 from ollama import Client, ChatResponse
 from schemas.llm import LlmQuestion
 from fastapi import HTTPException
-from core.config import CHAT_MODEL
+import os
+
 class LlmService: 
-    
     def __init__(self, ollama_client: Client):
         self.ollama_client = ollama_client
-
 
     def generate_response(self, question: LlmQuestion) -> str:
         """Genera una respuesta basada en la pregunta y el contexto proporcionado."""
@@ -29,15 +28,12 @@ class LlmService:
             """
 
             # Mando Request al modelo
-            response:ChatResponse = self.ollama_client.chat(
-                model=CHAT_MODEL, 
-                messages=[
-                    {"role": "system", "content": "Eres un asistente útil, directo y preciso. Responde de manera directa sin inventar contexto innecesario."},
-                    {"role": "user", "content": prompt}
-                ]
+            response:ChatResponse = self.ollama_client.generate(
+                model=os.getenv("CHAT_MODEL"), 
+                prompt=prompt
             )
 
-            return response.message.content
+            return response["response"]
 
         except Exception as e:
             print(f"Error al generar respuesta del LLM: {e}")

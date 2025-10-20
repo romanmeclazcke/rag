@@ -78,10 +78,10 @@ def clear_chat(id: int, db: Session = Depends(get_db), current_user: int = Depen
     return {"deleted": deleted}
 
 @router.post("/talk/{id}", response_model=MessageResponse)
-def send_message(id: int, message: MessageCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user),embedding_service: EmbeddingService = Depends(get_embedding_service), llm_service: LlmService = Depends(get_llm_service)):
+async def send_message(id: int, message: MessageCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), embedding_service: EmbeddingService = Depends(get_embedding_service), llm_service: LlmService = Depends(get_llm_service)):
     chat_db = db.query(Chat).options(selectinload(Chat.messages)).filter(Chat.id == id, Chat.user_id == current_user.id).first()# type: ignore
     if not chat_db: # Creo uno nuevo 
-        chat_db = Chat(user_id=current_user.id, title="New chat", created_chat=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc)) # type: ignore
+        chat_db = Chat(user_id=current_user.id, title="New chat", created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc)) # type: ignore
         db.add(chat_db)
         db.commit()
         db.refresh(chat_db)
@@ -97,7 +97,7 @@ def send_message(id: int, message: MessageCreate, db: Session = Depends(get_db),
     if len(chat_db.messages) == 0:
         context.append({
             "role": "system", # comportamiento
-            "content": "Eres un asistente útil, conciso y preciso. Responde de manera directa sin inventar contexto innecesario."
+            "content": "Eres un asistente útil, conciso y preciso que responde en español, a menos que el usuario pregunte explícitamente en otro idioma."
         })
 
     context += [
@@ -106,15 +106,19 @@ def send_message(id: int, message: MessageCreate, db: Session = Depends(get_db),
     ] 
     context.append({"role": "user", "content": message.content}) # agrego el nuevo mensaje
     
-    questionEmbedding= embedding_service.generate_embedding(EmbeddingText(text=message.content))
+    questionEmbedding = await embedding_service.generate_embedding(request=EmbeddingText(text=message.content))
     
-    relevant_contexts = embedding_service.qdrant_service.get_similar_vectors(questionEmbedding, top_k=5)
-    print(f"Contexto recuperados: {relevant_contexts}")
+    try:
+        relevant_contexts = embedding_service.qdrant_service.get_similar_vectors(questionEmbedding, top_k=5)
+        print(f"Contexto recuperados: {relevant_contexts}")
+    except Exception as e:
+        print(f"No se pudieron recuperar contextos: {e}")
+        relevant_contexts = []
     
     question = LlmQuestion(
             question=message.content,
             conversation=[msg["content"] for msg in context if msg["role"] != "system"],
-            context= relevant_contexts
+            context=relevant_contexts
         )
 
     response = llm_service.generate_response(question)

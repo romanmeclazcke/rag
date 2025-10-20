@@ -6,7 +6,5 @@ class LlmQuestion(BaseModel):
     context: Optional[List[str]] = None
     conversation: Optional[List[str]] = None
     
-    
-    
 class UserQuestion(BaseModel):
     question: str

@@ -1,65 +1,48 @@
-from ollama import Client
 from schemas.embedding import EmbeddingText
 from services.qdrant_service import QDrantService
-from ollama._types import EmbeddingsResponse 
 import io
+from sentence_transformers import SentenceTransformer
 from PyPDF2 import PdfReader
+from llama_index.core.node_parser import SentenceSplitter
 from docx import Document
 
 class EmbeddingService:
-    def __init__(self, ollama_client: Client,qdrant_service:QDrantService):
-        self.ollama_client = ollama_client
+    def __init__(self, qdrant_service: QDrantService):
+        # Modelo eficiente y compatible con Qdrant (768 dimensiones)
+        self.model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
         self.qdrant_service = qdrant_service
-
-    def generate_and_save_embedding(self, request: EmbeddingText):
-        """
-        Genera un embedding para el texto dado usando Ollama.
-        """
-        try:
-            response:EmbeddingsResponse = self.ollama_client.embeddings(
-                model="nomic-embed-text",
-                prompt=request.text
-            )
-            
-            self.qdrant_service.save_vector(request.text, list(response.embedding))
-            return list(response.embedding)
-        except Exception as e:
-            print(f"Error al generar embedding: {e}")
-            raise RuntimeError("No se pudo generar el embedding.")
         
-    def generate_embedding(self, request: EmbeddingText):
-        """
-        Genera un embedding para el texto dado usando Ollama.
-        """
+    async def generate_embedding(self, request: EmbeddingText=None, file=None, save: bool = False):
+        """Genera un embedding para texto/archivo dado usando Ollama. Si 'save' es True, guarda el embedding en Qdrant."""
         try:
-            response:EmbeddingsResponse = self.ollama_client.embeddings(
-                model="nomic-embed-text",
-                prompt=request.text
-            )
+            if file:
+                text = self.extract_text_from_file(file)
+                if not text or text.strip() == "":
+                    raise ValueError("El archivo está vacío o no contiene texto válido.")
+            elif request and request.text:
+                text = request.text
+            else:
+                raise ValueError("Debes proporcionar texto o un archivo válido.")
             
-            return list(response.embedding)
+            chunks = self.chunk_text(text)
+            print(f"Texto dividido en {len(chunks)} fragmentos")
+
+             # Generar embeddings en batch (MUY rápido)
+            embeddings = self.model.encode(chunks, show_progress_bar=True)
+
+            if save:
+                for chunk, emb in zip(chunks, embeddings):
+                    self.qdrant_service.save_vector(chunk, emb)
+
+            return embeddings.tolist()
         except Exception as e:
             print(f"Error al generar embedding: {e}")
             raise RuntimeError("No se pudo generar el embedding.")    
-        
-        
-    async def generate_embedding_from_file(self, file):
-        """
-        Extrae texto desde un archivo y genera embeddings.
-        """
-        text = self._extract_text_from_file(file)
-        if not text or text.strip() == "":
-            raise ValueError("El archivo está vacío o no contiene texto válido.")
-
-        return self.generate_and_save_embedding(EmbeddingText(text=text))
-
-    def _extract_text_from_file(self, file) -> str:
-        """
-        Extrae texto desde archivos TXT, PDF o DOCX.
-        """
+    
+    def extract_text_from_file(self, file) -> str:
+        """Extrae texto desde archivos TXT, PDF o DOCX."""
         content = file.file.read()
         file.file.seek(0)  # resetea el puntero
-
         filename = file.filename.lower()
 
         if filename.endswith(".txt"):
@@ -74,4 +57,16 @@ class EmbeddingService:
             return " ".join(p.text for p in doc.paragraphs)
 
         else:
-            raise ValueError("Formato de archivo no soportado (solo .txt, .pdf, .docx).")    
+            raise ValueError("Formato de archivo no soportado (solo .txt, .pdf, .docx).")   
+
+    def chunk_text(self, text: str) -> list[str]:
+        """Divide el texto en fragmentos (chunks) de manera automática y semánticamente coherente.
+        Usa LlamaIndex para respetar párrafos, oraciones y mantener coherencia entre fragmentos."""
+
+        splitter = SentenceSplitter(chunk_size=700, chunk_overlap=100)
+
+        chunks = splitter.split_text(text)
+        return chunks
+        
+        
+

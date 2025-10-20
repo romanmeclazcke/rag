@@ -1,7 +1,7 @@
 from qdrant_client import QdrantClient, models
 import uuid
 from typing import List
-from core.config import COLLECTION_NAME
+import os
 
 class QDrantService:
     def __init__(self, client: QdrantClient):
@@ -10,10 +10,10 @@ class QDrantService:
     def create_collection_if_not_exists(self):
         collections = self.client.get_collections()
         existing = [c.name for c in collections.collections]
-        if COLLECTION_NAME not in existing:
-            print(f"Creando colección '{COLLECTION_NAME}'...")
+        if os.getenv("COLLECTION_NAME") not in existing:
+            print(f"Creando colección '{os.getenv('COLLECTION_NAME')}'...")
             self.client.recreate_collection(
-                collection_name=COLLECTION_NAME,
+                collection_name=os.getenv("COLLECTION_NAME"),
                 vectors_config=models.VectorParams(
                     size=768, 
                     distance=models.Distance.COSINE
@@ -31,7 +31,7 @@ class QDrantService:
                 payload={"text": text}
             )
             self.client.upsert(
-                collection_name=COLLECTION_NAME,
+                collection_name=os.getenv("COLLECTION_NAME"),
                 points=[point]
             )
         except Exception as e:
@@ -45,7 +45,7 @@ class QDrantService:
         """
         try:
             search_result = self.client.search(
-                collection_name=COLLECTION_NAME,
+                collection_name=os.getenv("COLLECTION_NAME"),
                 query_vector=query_vector,
                 limit=top_k
             )

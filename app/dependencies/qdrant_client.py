@@ -1,7 +1,6 @@
 from qdrant_client import QdrantClient
 from fastapi import Depends
 import os
-from core.config import QDRANT_HOST, QDRANT_PORT
 
 def get_qdrant_client() -> QdrantClient:
     """
@@ -9,7 +8,7 @@ def get_qdrant_client() -> QdrantClient:
     Si no se puede conectar, lanza una excepción.
     """
     try:
-        client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+        client = QdrantClient(host=os.getenv("QDRANT_HOST"), port=os.getenv("QDRANT_PORT"))
         client.get_collections()
         return client
     except Exception as e:

@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from datetime import datetime
 from .chat import ChatResponse
 
-
 class MessageCreate(BaseModel):
     content: str
 

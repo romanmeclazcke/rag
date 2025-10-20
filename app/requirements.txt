@@ -11,3 +11,6 @@ python-jose
 passlib
 psycopg2-binary
 email_validator
+llama-index
+sentence-transformers
+einops
