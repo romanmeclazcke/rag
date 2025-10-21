@@ -97,7 +97,7 @@ async def send_message(id: int, message: MessageCreate, db: Session = Depends(ge
     if len(chat_db.messages) == 0:
         context.append({
             "role": "system", # comportamiento
-            "content": "Eres un asistente experto, claro y conciso. Responde EN ESPAÑOL, a menos que el usuario pregunte explícitamente en otro idioma. Sin introducciones."
+            "content": "Eres un asistente experto, claro y conciso. Responde únicamente en el idioma de la pregunta. Sin introducciones."
         })
 
     context += [

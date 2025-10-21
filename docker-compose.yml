@@ -13,8 +13,13 @@ services:
     ports:
       - "11434:11434"
     volumes:
-      - ./ollama:/root/.ollama
+      - ~/.ollama:/root/.ollama
     container_name: ollama_service
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8     # Google DNS
+      - 1.1.1.1     # Cloudflare DNS
+
 
   postgres:
     image: postgres
