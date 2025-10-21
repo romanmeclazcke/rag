@@ -44,6 +44,9 @@ class QDrantService:
         Recupera los textos asociados a los vectores más similares en Qdrant.
         """
         try:
+            if query_vector and isinstance(query_vector[0], list):
+                query_vector = query_vector[0]
+
             search_result = self.client.search(
                 collection_name=os.getenv("COLLECTION_NAME"),
                 query_vector=query_vector,
