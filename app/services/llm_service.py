@@ -10,24 +10,26 @@ class LlmService:
     def generate_response(self, question: LlmQuestion) -> str:
         """Genera una respuesta basada en la pregunta y el contexto proporcionado."""
         try:
-            context_text = "\n".join(f"- {chunk}" for chunk in question.context) if question.context else "No se proporcionó contexto."
-            conversation_text = "\n".join(f"{role}: {content}" for role, content in zip(["User", "Assistant"] * (len(question.conversation)//2 + 1), question.conversation))
+            context_text = ""
+            if question.context and len(question.context) > 0:
+                context_text = "\n".join(
+                    f"- {chunk}" for chunk in question.context
+                )
 
             #  Prompt final
             prompt = f"""
-            Eres un asistente experto y tus respuestas deben basarse *principalmente* en el contexto proporcionado abajo.
-            Si la información relevante se encuentra en el contexto, úsala textualmente. 
-            Solo si el contexto no contiene la respuesta, puedes usar tu conocimiento general.
+            Utiliza la información del contexto como fuente principal, solo si es útil para responder correctamente. 
+            Si el contexto no aporta la respuesta, utiliza tu conocimiento general. 
+            No menciones el contexto ni que lo estás utilizando.
 
-            ### HISTORIAL DE CONVERSACIÓN ###
-            {conversation_text or "No hay mensajes previos."}
             ### CONTEXTO RELEVANTE ###  
             {context_text if context_text else "No se proporcionó contexto."}
-            ### NUEVA PREGUNTA ###
+            ### PREGUNTA ###  
             {question.question}
-
-            Responde en el idioma del usuario, de manera clara, concisa y precisa.
             """
+
+            print("=== CONTEXTO ===")
+            print(context_text[:500])
 
             # Mando Request al modelo
             response:ChatResponse = self.ollama_client.generate(

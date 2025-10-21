@@ -23,3 +23,4 @@ ollama/
 # Llaves / SSH
 id_*
 *.pub
+.aider*

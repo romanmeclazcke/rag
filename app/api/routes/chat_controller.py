@@ -93,11 +93,18 @@ async def send_message(id: int, message: MessageCreate, db: Session = Depends(ge
     db.refresh(user_msg)
     
     # Construyo el historial de conversación
-    conversation = [
+    context = []
+    if len(chat_db.messages) == 0:
+        context.append({
+            "role": "system", # comportamiento
+            "content": "Eres un asistente experto, claro y conciso. Responde EN ESPAÑOL, a menos que el usuario pregunte explícitamente en otro idioma. Sin introducciones."
+        })
+
+    context += [
         {"role": msg.role, "content": msg.content}
         for msg in chat_db.messages[-10:] # solo los últimos 10 para no sobrecargar tanto
     ] 
-    conversation.append({"role": "user", "content": message.content}) # agrego el nuevo mensaje
+    context.append({"role": "user", "content": message.content}) # agrego el nuevo mensaje
     
     questionEmbedding = await embedding_service.generate_embedding(request=EmbeddingText(text=message.content))
     
@@ -110,7 +117,7 @@ async def send_message(id: int, message: MessageCreate, db: Session = Depends(ge
     
     question = LlmQuestion(
             question=message.content,
-            conversation=[msg["content"] for msg in conversation],
+            conversation=[msg["content"] for msg in context if msg["role"] != "system"],
             context=relevant_contexts
         )
 
@@ -121,8 +128,5 @@ async def send_message(id: int, message: MessageCreate, db: Session = Depends(ge
     db.add(model_msg)
     db.commit()
     db.refresh(model_msg)
-
-    chat_db.updated_at = datetime.now(timezone.utc)
-    db.commit()
 
     return model_msg
