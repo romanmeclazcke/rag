@@ -9,6 +9,7 @@ class ChatBase(BaseModel):
 
 class ChatCreate(ChatBase):
     pass
+    model_config = {"from_attributes": True}
 
 class ChatResponse(ChatBase):
     id: int

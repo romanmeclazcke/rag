@@ -10,21 +10,23 @@ class LlmService:
     def generate_response(self, question: LlmQuestion) -> str:
         """Genera una respuesta basada en la pregunta y el contexto proporcionado."""
         try:
-            context_text = ""
-            if question.context and len(question.context) > 0:
-                context_text = "\n".join(
-                    f"- {chunk}" for chunk in question.context
-                )
+            context_text = "\n".join(f"- {chunk}" for chunk in question.context) if question.context else "No se proporcionó contexto."
+            conversation_text = "\n".join(f"{role}: {content}" for role, content in zip(["User", "Assistant"] * (len(question.conversation)//2 + 1), question.conversation))
 
             #  Prompt final
             prompt = f"""
-            Responde (directamente, sin frases introductorias ni explicaciones sobre tu rol) a la siguiente pregunta usando tu propio conocimiento.
-            Si el contexto adicional dado es útil o relevante, puedes usarlo; si no, ignóralo.
+            Eres un asistente experto y tus respuestas deben basarse *principalmente* en el contexto proporcionado abajo.
+            Si la información relevante se encuentra en el contexto, úsala textualmente. 
+            Solo si el contexto no contiene la respuesta, puedes usar tu conocimiento general.
 
-            Contexto (opcional):
+            ### HISTORIAL DE CONVERSACIÓN ###
+            {conversation_text or "No hay mensajes previos."}
+            ### CONTEXTO RELEVANTE ###  
             {context_text if context_text else "No se proporcionó contexto."}
-            Pregunta:
+            ### NUEVA PREGUNTA ###
             {question.question}
+
+            Responde en el idioma del usuario, de manera clara, concisa y precisa.
             """
 
             # Mando Request al modelo

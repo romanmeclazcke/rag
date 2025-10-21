@@ -14,3 +14,4 @@ email_validator
 llama-index
 sentence-transformers
 einops
+streamlit

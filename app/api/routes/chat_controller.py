@@ -92,19 +92,12 @@ async def send_message(id: int, message: MessageCreate, db: Session = Depends(ge
     db.commit()
     db.refresh(user_msg)
     
-    # Construyo el contexto con los mensajes previos de ese chat
-    context = []
-    if len(chat_db.messages) == 0:
-        context.append({
-            "role": "system", # comportamiento
-            "content": "Eres un asistente útil, conciso y preciso que responde en español, a menos que el usuario pregunte explícitamente en otro idioma."
-        })
-
-    context += [
+    # Construyo el historial de conversación
+    conversation = [
         {"role": msg.role, "content": msg.content}
         for msg in chat_db.messages[-10:] # solo los últimos 10 para no sobrecargar tanto
     ] 
-    context.append({"role": "user", "content": message.content}) # agrego el nuevo mensaje
+    conversation.append({"role": "user", "content": message.content}) # agrego el nuevo mensaje
     
     questionEmbedding = await embedding_service.generate_embedding(request=EmbeddingText(text=message.content))
     
@@ -117,7 +110,7 @@ async def send_message(id: int, message: MessageCreate, db: Session = Depends(ge
     
     question = LlmQuestion(
             question=message.content,
-            conversation=[msg["content"] for msg in context if msg["role"] != "system"],
+            conversation=[msg["content"] for msg in conversation],
             context=relevant_contexts
         )
 
@@ -128,5 +121,8 @@ async def send_message(id: int, message: MessageCreate, db: Session = Depends(ge
     db.add(model_msg)
     db.commit()
     db.refresh(model_msg)
+
+    chat_db.updated_at = datetime.now(timezone.utc)
+    db.commit()
 
     return model_msg
