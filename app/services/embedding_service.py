@@ -5,6 +5,7 @@ from sentence_transformers import SentenceTransformer
 from PyPDF2 import PdfReader
 from llama_index.core.node_parser import SentenceSplitter
 from docx import Document
+from utils.hash import get_file_hash
 
 class EmbeddingService:
     def __init__(self, qdrant_service: QDrantService):

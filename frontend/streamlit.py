@@ -164,6 +164,8 @@ def upload_document():
             r = requests.post(f"{API_BASE}/embeddings/upload/file", files={"file": uploaded_file}, headers=headers)
             if r.status_code == 200:
                 st.success("✅ Documento subido correctamente")
+            elif r.status_code == 409:
+                st.warning(f"⚠️ {r.json().get('detail', 'El documento ya fue subido anteriormente.')}")
             else:
                 st.error(f"Error {r.status_code}: {r.text}")
 

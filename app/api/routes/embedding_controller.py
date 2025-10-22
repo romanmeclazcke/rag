@@ -18,5 +18,10 @@ async def upload_file(
     file: UploadFile = File(...),
     service: EmbeddingService = Depends(get_embedding_service)
 ):
-    await service.generate_embedding(file=file, save=True)
-    return {"message": f"Embedding generado correctamente desde archivo '{file.filename}'"}
+    try:
+        await service.generate_embedding(file=file, save=True)
+        return {"message": f"Embedding generado correctamente desde archivo '{file.filename}'"}
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

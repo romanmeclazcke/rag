@@ -20,15 +20,19 @@ class QDrantService:
                 )
             )
 
-    def save_vector(self, text: str, vector: List[float]):
+    def save_vector(self, text: str, vector: List[float], file_hash: str | None = None):
         """
         Guarda un vector en Qdrant asociado al texto dado.
         """
+        payload = {"text": text}
+        if file_hash:
+            payload["file_hash"] = file_hash
+            
         try:
             point = models.PointStruct(
                 id=str(uuid.uuid4()),
                 vector=vector,
-                payload={"text": text}
+                payload=payload
             )
             self.client.upsert(
                 collection_name=os.getenv("COLLECTION_NAME"),
@@ -37,6 +41,29 @@ class QDrantService:
         except Exception as e:
             print(f"Error al guardar el vector en Qdrant: {e}")
             raise RuntimeError("No se pudo guardar el vector en Qdrant.")
+
+    def check_if_hash_exists(self, file_hash: str) -> bool:
+        """
+        Verifica si ya existe un punto con el hash de archivo dado en Qdrant.
+        """
+        try:
+            search_result = self.client.scroll(
+                collection_name=os.getenv("COLLECTION_NAME"),
+                scroll_filter=models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="file_hash",
+                            match=models.MatchValue(value=file_hash),
+                        )
+                    ]
+                ),
+                limit=1,
+            )
+            return len(search_result[0]) > 0
+        except Exception as e:
+            print(f"Error al verificar el hash en Qdrant: {e}")
+            # En caso de error, es más seguro asumir que no existe para permitir el flujo.
+            return False
         
         
     def get_similar_vectors(self, query_vector: List[float], top_k: int = 5) -> List[str]:
