@@ -9,7 +9,7 @@ from utils.hash import get_file_hash
 
 class EmbeddingService:
     def __init__(self, qdrant_service: QDrantService):
-        # Modelo eficiente y compatible con Qdrant (384 dimensiones)
+        # Modelo liviano y rápido (384 dimensiones) para la demo, AL AVANZAR ANALIZAR SI VOLVER AL nomic-ai/nomic-embed-text-v1 
         model_name = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
         self.model = SentenceTransformer(model_name, trust_remote_code=True)
         self.qdrant_service = qdrant_service
