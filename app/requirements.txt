@@ -15,4 +15,3 @@ llama-index
 sentence-transformers
 einops
 streamlit
-hashlib

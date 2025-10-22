@@ -18,13 +18,14 @@ class LlmService:
 
             #  Prompt final
             prompt = f"""
-            Utiliza la información del contexto como fuente principal, solo si es útil para responder correctamente. 
-            Si el contexto no aporta la respuesta, utiliza tu conocimiento general. 
-            No menciones el contexto ni que lo estás utilizando.
+            Instrucciones:
+            1. Usa la información del contexto ÚNICAMENTE si sirve para responder correctamente.
+            2. Si el contexto no sirve, responde con tu conocimiento general.
+            3. Nunca menciones el contexto ni digas que no hay información en él.
 
-            ### CONTEXTO RELEVANTE ###  
+            Contexto (si es útil):
             {context_text if context_text else "No se proporcionó contexto."}
-            ### PREGUNTA ###  
+            Pregunta del usuario: 
             {question.question}
             """
 

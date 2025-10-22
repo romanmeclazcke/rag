@@ -230,8 +230,10 @@ else:
                 # Mostrar el mensaje del usuario inmediatamente
                 st.session_state.messages.append({"role": "user", "content": user_input})
 
-                # Enviar al backend
-                response = send_message(user_input)
+                # Spinner mientras se genera la respuesta
+                with st.spinner("💭 Pensando..."):
+                    response = send_message(user_input)
+
                 if response:
                     # Agregar la respuesta del asistente al historial
                     st.session_state.messages.append(
