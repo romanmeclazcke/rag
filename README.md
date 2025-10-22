@@ -1,5 +1,5 @@
 # Chat RAG 
-Asistente conversacional que responde preguntas en base a documentos subidos (PDF/TXT/DOCX).
+Asistente conversacional que responde preguntas combinando información de documentos subidos (PDF, TXT o DOCX) y conocimiento general
 
 ## Tecnologías principales
 - **FastAPI** — Backend principal (API y lógica RAG)
