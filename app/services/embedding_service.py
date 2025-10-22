@@ -63,9 +63,13 @@ class EmbeddingService:
         """Divide el texto en fragmentos (chunks) de manera automática y semánticamente coherente.
         Usa LlamaIndex para respetar párrafos, oraciones y mantener coherencia entre fragmentos."""
 
-        splitter = SentenceSplitter(chunk_size=700, chunk_overlap=100)
-
+        splitter = SentenceSplitter(chunk_size=400, chunk_overlap=50)
         chunks = splitter.split_text(text)
+
+        # Si solo hay un chunk pero el texto es largo, dividir manualmente
+        if len(chunks) == 1 and len(text) > 600:
+            chunks = [text[i:i+400] for i in range(0, len(text), 400)]
+
         return chunks
         
         

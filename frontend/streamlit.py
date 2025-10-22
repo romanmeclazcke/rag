@@ -163,7 +163,7 @@ def upload_document():
             files = {"file": uploaded_file.getvalue()}
             r = requests.post(f"{API_BASE}/embeddings/upload/file", files={"file": uploaded_file}, headers=headers)
             if r.status_code == 200:
-                st.success("✅ Embeddings generados y almacenados correctamente")
+                st.success("✅ Documento subido correctamente")
             else:
                 st.error(f"Error {r.status_code}: {r.text}")
 

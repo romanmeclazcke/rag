@@ -44,16 +44,19 @@ class QDrantService:
         Recupera los textos asociados a los vectores más similares en Qdrant.
         """
         try:
-            if query_vector and isinstance(query_vector[0], list):
+            if isinstance(query_vector, list) and len(query_vector) == 1 and isinstance(query_vector[0], list):
                 query_vector = query_vector[0]
 
             search_result = self.client.search(
                 collection_name=os.getenv("COLLECTION_NAME"),
                 query_vector=query_vector,
-                limit=top_k
-            )
-            
-            return [ point.payload.get("text", "") for point in search_result if point.payload is not None and point.score >= 0.70] # Establezco un umbral, para solo traer contenido realmente relacionado
+                limit=top_k)
+
+            relevant = [point.payload.get("text", "") for point in search_result if point.payload and point.score >= 0.45] # Establezco un umbral, para solo traer contenido realmente relacionado
+            if not relevant:
+                print("No se encontraron contextos relevantes")
+
+            return relevant
         except Exception as e:
             print(f"Error al recuperar vectores similares de Qdrant: {e}")
             raise RuntimeError("No se pudieron recuperar vectores similares de Qdrant.")
