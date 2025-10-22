@@ -66,7 +66,7 @@ class QDrantService:
             return False
         
         
-    def get_similar_vectors(self, query_vector: List[float], top_k: int = 5) -> List[str]:
+    def get_similar_vectors(self, query_vector: List[float], top_k: int = 3) -> List[str]:
         """
         Recupera los textos asociados a los vectores más similares en Qdrant.
         """

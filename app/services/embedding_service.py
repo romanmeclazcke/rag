@@ -1,6 +1,6 @@
 from schemas.embedding import EmbeddingText
 from services.qdrant_service import QDrantService
-import io
+import io, os
 from sentence_transformers import SentenceTransformer
 from PyPDF2 import PdfReader
 from llama_index.core.node_parser import SentenceSplitter
@@ -9,8 +9,9 @@ from utils.hash import get_file_hash
 
 class EmbeddingService:
     def __init__(self, qdrant_service: QDrantService):
-        # Modelo eficiente y compatible con Qdrant (768 dimensiones)
-        self.model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
+        # Modelo eficiente y compatible con Qdrant (384 dimensiones)
+        model_name = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+        self.model = SentenceTransformer(model_name, trust_remote_code=True)
         self.qdrant_service = qdrant_service
         
     async def generate_embedding(self, request: EmbeddingText=None, file=None, save: bool = False):
