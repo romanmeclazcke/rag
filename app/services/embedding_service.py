@@ -16,8 +16,17 @@ class EmbeddingService:
     async def generate_embedding(self, request: EmbeddingText=None, file=None, save: bool = False):
         """Genera un embedding para texto/archivo dado usando Ollama. Si 'save' es True, guarda el embedding en Qdrant."""
         try:
+            file_hash = None
             if file:
-                text = self.extract_text_from_file(file)
+                content = file.file.read()
+                if not content:
+                    raise ValueError("El archivo está vacío.")
+
+                file_hash = get_file_hash(content)
+                if self.qdrant_service.check_if_hash_exists(file_hash):
+                    raise ValueError("El archivo ya fue subido anteriormente.")
+                
+                text = self.extract_text_from_file(content, file.filename)
                 if not text or text.strip() == "":
                     raise ValueError("El archivo está vacío o no contiene texto válido.")
             elif request and request.text:
@@ -33,18 +42,19 @@ class EmbeddingService:
 
             if save:
                 for chunk, emb in zip(chunks, embeddings):
-                    self.qdrant_service.save_vector(chunk, emb)
+                    self.qdrant_service.save_vector(chunk, emb, file_hash)
 
             return embeddings.tolist()
+        except ValueError as e:
+            # Re-lanzar ValueError para que el controlador lo atrape específicamente
+            raise e
         except Exception as e:
             print(f"Error al generar embedding: {e}")
             raise RuntimeError("No se pudo generar el embedding.")    
     
-    def extract_text_from_file(self, file) -> str:
+    def extract_text_from_file(self, content: bytes, filename: str) -> str:
         """Extrae texto desde archivos TXT, PDF o DOCX."""
-        content = file.file.read()
-        file.file.seek(0)  # resetea el puntero
-        filename = file.filename.lower()
+        filename = filename.lower()
 
         if filename.endswith(".txt"):
             return content.decode("utf-8")
@@ -58,7 +68,7 @@ class EmbeddingService:
             return " ".join(p.text for p in doc.paragraphs)
 
         else:
-            raise ValueError("Formato de archivo no soportado (solo .txt, .pdf, .docx).")   
+            raise ValueError("Formato de archivo no soportado (solo .txt, .pdf, .docx).")
 
     def chunk_text(self, text: str) -> list[str]:
         """Divide el texto en fragmentos (chunks) de manera automática y semánticamente coherente.
