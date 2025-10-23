@@ -7,6 +7,7 @@ class QDrantService:
     def __init__(self, client: QdrantClient):
         self.client = client
 
+
     def create_collection_if_not_exists(self):
         collections = self.client.get_collections()
         existing = [c.name for c in collections.collections]
@@ -19,6 +20,7 @@ class QDrantService:
                     distance=models.Distance.COSINE
                 )
             )
+
 
     def save_vector(self, text: str, vector: List[float], file_hash: str | None = None):
         """
@@ -41,6 +43,7 @@ class QDrantService:
         except Exception as e:
             print(f"Error al guardar el vector en Qdrant: {e}")
             raise RuntimeError("No se pudo guardar el vector en Qdrant.")
+
 
     def check_if_hash_exists(self, file_hash: str) -> bool:
         """
@@ -87,3 +90,7 @@ class QDrantService:
         except Exception as e:
             print(f"Error al recuperar vectores similares de Qdrant: {e}")
             raise RuntimeError("No se pudieron recuperar vectores similares de Qdrant.")
+        
+    def count_vectors(self):
+        collection_info = self.client.get_collection(self.collection_name)
+        return collection_info.points_count

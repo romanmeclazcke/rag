@@ -24,6 +24,7 @@ router = APIRouter(prefix="/chats",
 def get_all_by_user(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     return db.query(Chat).filter(Chat.user_id == current_user.id).all() # type: ignore
 
+
 @router.get("/{id}", response_model=ChatResponse)
 def get_by_user(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):       
     chat = db.query(Chat).filter(Chat.id == id, Chat.user_id == current_user.id).first()# type: ignore
@@ -31,6 +32,7 @@ def get_by_user(id: int, db: Session = Depends(get_db), current_user: int = Depe
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found")
     
     return chat
+
 
 @router.post("/", status_code = status.HTTP_201_CREATED, response_model=ChatResponse) 
 def new_chat(chat: ChatCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -40,6 +42,7 @@ def new_chat(chat: ChatCreate, db: Session = Depends(get_db), current_user: int 
     db.refresh(new_chat) 
 
     return new_chat 
+
 
 @router.put("/{id}", response_model=ChatResponse) 
 def update_chat(id: int, updated_chat: ChatCreate, db: Session = Depends(get_db)):
@@ -53,6 +56,7 @@ def update_chat(id: int, updated_chat: ChatCreate, db: Session = Depends(get_db)
 
     return find_chat.first() 
 
+
 @router.delete("/{id}", status_code = status.HTTP_204_NO_CONTENT)
 def delete_chat(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     find_chat = db.query(Chat).filter(Chat.id == id, Chat.user_id == current_user.id)# type: ignore
@@ -63,6 +67,7 @@ def delete_chat(id: int, db: Session = Depends(get_db), current_user: int = Depe
     db.commit()
 
     return Response(status_code = status.HTTP_204_NO_CONTENT)
+
 
 @router.delete("/clear/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def clear_chat(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -76,6 +81,7 @@ def clear_chat(id: int, db: Session = Depends(get_db), current_user: int = Depen
     db.commit()
 
     return {"deleted": deleted}
+
 
 @router.post("/talk/{id}", response_model=MessageResponse)
 async def send_message(id: int, message: MessageCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), embedding_service: EmbeddingService = Depends(get_embedding_service), llm_service: LlmService = Depends(get_llm_service)):

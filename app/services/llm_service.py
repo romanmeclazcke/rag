@@ -7,6 +7,7 @@ class LlmService:
     def __init__(self, ollama_client: Client):
         self.ollama_client = ollama_client
 
+
     def generate_response(self, question: LlmQuestion) -> str:
         """Genera una respuesta basada en la pregunta y el contexto proporcionado."""
         try:

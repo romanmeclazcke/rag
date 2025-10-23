@@ -15,7 +15,7 @@ if "chat_title" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# LOGIN
+# AUTENTICACIÓN
 def auth_page():
     st.title("🔐 Iniciar sesión o registrarse")
 

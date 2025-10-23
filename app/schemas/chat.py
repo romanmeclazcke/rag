@@ -3,7 +3,6 @@ from typing import Optional
 from datetime import datetime
 from .user import UserResponse
 
-
 class ChatBase(BaseModel):
     title: Optional[str] = None
 

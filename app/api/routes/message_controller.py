@@ -8,8 +8,6 @@ from model.chat import Chat
 from model.message import Message
 from utils import oauth2
 
-
-
 router = APIRouter(prefix="/messages", 
                    tags=['Messages']) 
 
@@ -21,6 +19,7 @@ def get_messages_by_chat(chat_id: int, db: Session = Depends(get_db)):
 
     messages = db.query(Message).filter(Message.chat_id == chat_id).order_by(Message.created_at.asc()).all()
     return messages
+
 
 @router.post("/{chat_id}", status_code = status.HTTP_201_CREATED, response_model=MessageResponse) 
 def new_message(chat_id: int, message: MessageCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):

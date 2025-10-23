@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 import os 
 import dependencies.database  as database
 from schemas.token import TokenData
-
 from model.user import User
 
 load_dotenv()
@@ -21,6 +20,7 @@ def create_token(data: dict):
     token = jwt.encode(copy, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))  # type: ignore
 
     return token
+
 
 def verify_token(token: str, credentials_exception):
     try:
@@ -36,6 +36,7 @@ def verify_token(token: str, credentials_exception):
     
     return token_data
     
+
 def get_current_user(tokenUser: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)):
     credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated", headers={"WWW-Authenticate": "Bearer"})
     token: TokenData = verify_token(tokenUser, credentials_exception)

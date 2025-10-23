@@ -13,6 +13,7 @@ async def upload_text(
     await service.generate_embedding(request=text, save=True)
     return {"message": "Embedding generado correctamente desde texto"}
 
+
 @router.post("/upload/file", status_code=status.HTTP_200_OK)
 async def upload_file(
     file: UploadFile = File(...),

@@ -13,6 +13,7 @@ class EmbeddingService:
         self.model = SentenceTransformer(os.getenv("EMBEDDING_MODEL"), trust_remote_code=True)
         self.qdrant_service = qdrant_service
         
+
     async def generate_embedding(self, request: EmbeddingText=None, file=None, save: bool = False):
         """Genera un embedding para texto/archivo dado usando Ollama. Si 'save' es True, guarda el embedding en Qdrant."""
         try:
@@ -52,6 +53,7 @@ class EmbeddingService:
             print(f"Error al generar embedding: {e}")
             raise RuntimeError("No se pudo generar el embedding.")    
     
+
     def extract_text_from_file(self, content: bytes, filename: str) -> str:
         """Extrae texto desde archivos TXT, PDF o DOCX."""
         filename = filename.lower()
@@ -69,6 +71,7 @@ class EmbeddingService:
 
         else:
             raise ValueError("Formato de archivo no soportado (solo .txt, .pdf, .docx).")
+
 
     def chunk_text(self, text: str) -> list[str]:
         """Divide el texto en fragmentos (chunks) de manera automática y semánticamente coherente.

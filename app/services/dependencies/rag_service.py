@@ -8,5 +8,5 @@ def get_rag_service(
     llm_service=Depends(get_llm_service),
     qdrant_service=Depends(get_qdrant_service),
     embedding_service=Depends(get_embedding_service)
-):
+    ):
     return RagService(llm_service,qdrant_service,embedding_service)

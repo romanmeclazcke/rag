@@ -6,13 +6,13 @@ from dependencies.database import get_db
 from model.user import User
 from utils.hash import hash
 
-
 router = APIRouter(prefix="/users", 
                    tags=['Users']) 
 
 @router.get("/", response_model=List[UserResponse])
 def get_users(db: Session = Depends(get_db)):
     return db.query(User).all()
+
 
 @router.post("/", status_code = status.HTTP_201_CREATED, response_model=UserResponse) 
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
@@ -30,6 +30,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
     return created_user 
 
+
 @router.get("/{id}", response_model=UserResponse)
 def get_user(id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == id).first()
@@ -38,6 +39,7 @@ def get_user(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {id} does not exist")
     
     return user
+
 
 @router.delete("/{id}", status_code = status.HTTP_204_NO_CONTENT)
 def delete_user(id: int, db: Session = Depends(get_db)):
