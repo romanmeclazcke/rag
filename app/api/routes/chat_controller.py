@@ -145,4 +145,4 @@ async def send_message(id: int, message: MessageCreate, background_tasks: Backgr
         final_response = "".join(full_response)
         background_tasks.add_task(save_message_task, chat_db.id, final_response)
 
-    return StreamingResponse(stream_generator(), media_type="text/event-stream")
+    return StreamingResponse(stream_generator(), media_type="text/plain")
