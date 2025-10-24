@@ -142,16 +142,18 @@ def load_messages(chat_id):
 
 def send_message(content):
     headers = {"Authorization": f"Bearer {st.session_state.token}"}
-    r = requests.post(
-        f"{API_BASE}/chats/talk/{st.session_state.chat_id}",
-        json={"content": content},
-        headers=headers
-    )
-    if r.status_code == 200:
-        return r.json()
-    else:
-        st.error(f"Error {r.status_code}: {r.text}")
-        return None
+    try:
+        with requests.post(
+            f"{API_BASE}/chats/talk/{st.session_state.chat_id}",
+            json={"content": content},
+            headers=headers,
+            stream=True
+        ) as r:
+            r.raise_for_status()
+            for chunk in r.iter_content(chunk_size=None, decode_unicode=True):
+                yield chunk
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error al enviar mensaje: {e}")
 
 # SUBIDA DE DOCUMENTOS
 def upload_document():
@@ -219,31 +221,25 @@ else:
 
         # Mostrar los mensajes previos (persisten)
         for msg in st.session_state.messages:
-            role = "Tú:" if msg["role"] == "user" else "Asistente:"
-            st.write(f"**{role}** {msg['content']}")
+            with st.chat_message(msg["role"]):
+                st.write(msg['content'])
 
         # Campo de entrada del usuario
-        user_input = st.text_input("Tu pregunta:", key="chat_input")
-
-        if st.button("Enviar"):
-            if user_input.strip():
-                # Mostrar el mensaje del usuario inmediatamente
-                st.session_state.messages.append({"role": "user", "content": user_input})
-
-                # Spinner mientras se genera la respuesta
+        if user_input := st.chat_input("Tu pregunta:"):
+            # Mostrar el mensaje del usuario inmediatamente
+            st.session_state.messages.append({"role": "user", "content": user_input})
+            with st.chat_message("user"):
+                st.write(user_input)
+            
+            with st.chat_message("assistant"):
                 with st.spinner("💭 Pensando..."):
-                    response = send_message(user_input)
+                    response_stream = send_message(user_input)
+                    full_response = st.write_stream(response_stream)
 
-                if response:
-                    # Agregar la respuesta del asistente al historial
-                    st.session_state.messages.append(
-                        {"role": "assistant", "content": response["content"]}
-                    )
-                    # Refrescar también desde backend (por si hay mensajes nuevos)
-                    updated_msgs = load_messages(st.session_state.chat_id)
-                    st.session_state.messages = updated_msgs
-
-                st.rerun()
+            if full_response:
+                st.session_state.messages.append(
+                    {"role": "assistant", "content": full_response}
+                )
 
         st.divider()
         upload_document()
