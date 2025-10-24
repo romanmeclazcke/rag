@@ -136,7 +136,7 @@ async def send_message(id: int, message: MessageCreate, background_tasks: Backgr
             db_session.add(model_msg)
             db_session.commit()
 
-    async def stream_generator():
+    def stream_generator():
         full_response = []
         for chunk in response_stream:
             full_response.append(chunk)
