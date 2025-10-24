@@ -232,9 +232,15 @@ else:
                 st.write(user_input)
             
             with st.chat_message("assistant"):
-                with st.spinner("💭 Pensando..."):
-                    response_stream = send_message(user_input)
-                    full_response = st.write_stream(response_stream)
+                placeholder = st.empty()                                                                                                                                                   
+                placeholder.markdown("💭 Pensando...") 
+                
+                full_response = ""
+                response_stream = send_message(user_input)
+
+                for chunk in response_stream:                                                                                                                                              
+                    full_response += chunk                                                                                                                                                 
+                    placeholder.markdown(full_response) 
 
             if full_response:
                 st.session_state.messages.append(
